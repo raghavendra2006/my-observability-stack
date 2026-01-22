@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flask-alerts # Change this to your Prometheus namespace if different
+spec:
+  groups:
+  - name: flask-alerts
+    rules:
+    - alert: HighLatencyAlert
+      expr: |
+        histogram_quantile(
+          0.95,
+          sum(rate(flask_app_request_latency_seconds_bucket[1m])) by (le)
+        ) > 0.5
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High latency detected in Flask app"
+        description: "95th percentile latency is over 0.5s for more than 1 minute"
